@@ -4,6 +4,7 @@
 #include <vector>
 #include <random>
 #include <algorithm>
+#include <string_view>
 
 // types ----------------------------------------------------------------------
 
@@ -26,9 +27,9 @@ struct LineEntry
 
 CmdInputParams ReadInputParams(int argc, const char *argv[]);
 
-LineEntry ExtractLineInformation(const std::string& strLine, int idWeightColumn, char delimiter);
+LineEntry ExtractLineInformation(std::string_view svLine, int idWeightColumn, char delimiter);
 
-std::vector<LineEntry> ReadAllLines(std::string strPath, const CmdInputParams& params);
+std::vector<LineEntry> ReadAllLines(const std::string& strPath, const CmdInputParams& params);
 
 std::vector<int> BuildFromEntries(const std::vector<LineEntry>& vecEntries);
 

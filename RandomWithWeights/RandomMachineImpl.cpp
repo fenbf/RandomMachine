@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iostream>
 #include <set>
+#include <string_view>
 
 
 // implementation -------------------------------------------------------------
@@ -36,7 +37,7 @@ CmdInputParams ReadInputParams(int argc, const char *argv[])
 }
 
 // helper function for ExtractLineInformation
-size_t find_Nth(const std::string & str, int occurence, const char delimiter)
+size_t find_Nth(std::string_view svStr, int occurence, const char delimiter)
 {
 	if (occurence <= 0)
 		return std::string::npos;
@@ -44,7 +45,7 @@ size_t find_Nth(const std::string & str, int occurence, const char delimiter)
 	size_t pos, from = 0;
 	for (int i = 0; i < occurence; ++i)
 	{
-		pos = str.find(delimiter, from);
+		pos = svStr.find(delimiter, from);
 		if (pos == std::string::npos)
 			break;
 
@@ -54,26 +55,30 @@ size_t find_Nth(const std::string & str, int occurence, const char delimiter)
 	return pos;
 }
 
-LineEntry ExtractLineInformation(const std::string& strLine, int idWeightColumn, char delimiter)
+LineEntry ExtractLineInformation(std::string_view svLine, int idWeightColumn, char delimiter)
 {
-	LineEntry out{ strLine, 1 };
+	LineEntry out{ std::string(svLine), 1 }; // we want a real copy of the line, explicit constructor works here
 
 	if (idWeightColumn >= 0)
 	{
-		auto startPos = find_Nth(strLine, idWeightColumn, delimiter);
+		auto startPos = find_Nth(svLine, idWeightColumn, delimiter);
 		if (startPos != std::string::npos)
 		{
-			const auto strRemainder = strLine.substr(startPos + 1);
-			const auto nextPos = strRemainder.find(delimiter);
-			const auto strWeight = strRemainder.substr(0, nextPos);
-			out.weight = std::stoi(strWeight);
+			const auto svRemainder = svLine.substr(startPos + 1);
+			const auto nextPos = svRemainder.find(delimiter);
+			const auto svWeight = svRemainder.substr(0, nextPos);
+
+			// string_view doesn't support numerical conversions, so we need to have a string copy
+			//std::string strTemp{ svWeight.data(), svWeight.size() }; // copy using data/size
+			std::string strTemp{ svWeight }; // copy using explicit constructor
+			out.weight = std::stoi(strTemp);
 		}
 	}
 
 	return out;
 }
 
-std::vector<LineEntry> ReadAllLines(std::string strPath, const CmdInputParams& params)
+std::vector<LineEntry> ReadAllLines(const std::string& strPath, const CmdInputParams& params)
 {
 	std::vector<LineEntry> outVec;
 	std::string strLine;
